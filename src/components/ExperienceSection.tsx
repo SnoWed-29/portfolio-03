@@ -1,5 +1,24 @@
-import  { useState } from 'react';
+import { useState } from 'react';
 import { Calendar, MapPin, Zap, TrendingUp } from 'lucide-react';
+import { motion } from 'framer-motion';
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.2 },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, x: -50 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.6, ease: 'easeOut' } },
+};
+
+const titleVariants = {
+  hidden: { opacity: 0, y: -30 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } },
+};
 
 const ExperienceSection = () => {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -40,39 +59,48 @@ const ExperienceSection = () => {
   return (
     <section data-section="2" className="min-h-screen flex items-center px-6 py-20">
       <div className="max-w-6xl mx-auto w-full">
-        <div className="text-center mb-16 animate-fade-in">
+        <motion.div
+          className="text-center mb-16"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.5 }}
+          variants={titleVariants}
+        >
           <h2 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent">
             Experience
           </h2>
           <p className="text-xl text-white/60 max-w-2xl mx-auto">
             Building exceptional digital experiences across various scales and industries.
           </p>
-        </div>
+        </motion.div>
 
         <div className="relative">
-          {/* Timeline Line */}
           <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-500 via-purple-500 to-orange-500 opacity-30"></div>
 
-          <div className="space-y-8">
+          <motion.div
+            className="space-y-8"
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.2 }}
+          >
             {experiences.map((exp, index) => {
               const Icon = exp.icon;
               const isActive = activeIndex === index;
               
               return (
-                <div
+                <motion.div
                   key={index}
+                  variants={itemVariants}
                   className={`relative group cursor-pointer transition-all duration-500 ${
                     isActive ? 'scale-105' : 'hover:scale-102'
                   }`}
                   onMouseEnter={() => setActiveIndex(index)}
-                  style={{ animationDelay: `${index * 200}ms` }}
                 >
-                  {/* Timeline Dot */}
                   <div className={`absolute left-6 w-5 h-5 rounded-full border-4 border-[#0A0A0A] transition-all duration-500 ${
                     isActive ? `bg-gradient-to-r ${exp.color} scale-125` : 'bg-white/20 hover:bg-white/40'
                   }`}></div>
-
-                  {/* Experience Card */}
+                  
                   <div className="ml-20 p-8 rounded-2xl bg-gradient-to-br from-white/5 to-white/10 border border-white/10 backdrop-blur-sm group-hover:bg-white/15 transition-all duration-500">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-4">
@@ -99,9 +127,7 @@ const ExperienceSection = () => {
                       </div>
                     </div>
 
-                    <p className="text-white/80 mb-6 leading-relaxed">
-                      {exp.description}
-                    </p>
+                    <p className="text-white/80 mb-6 leading-relaxed">{exp.description}</p>
 
                     <div className="flex flex-wrap gap-3">
                       {exp.highlights.map((highlight, i) => (
@@ -116,10 +142,10 @@ const ExperienceSection = () => {
                       ))}
                     </div>
                   </div>
-                </div>
+                </motion.div>
               );
             })}
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>

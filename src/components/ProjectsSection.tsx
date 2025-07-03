@@ -1,10 +1,30 @@
-import  { useState } from 'react';
+import { useState } from 'react';
 import { Github, ArrowRight, Star, Code, Zap } from 'lucide-react';
+import { motion } from 'framer-motion';
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.2 },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 50, scale: 0.9 },
+  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.6, ease: 'easeOut' } },
+};
+
+const titleVariants = {
+  hidden: { opacity: 0, y: -30 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } },
+};
 
 const ProjectsSection = () => {
   const [hoveredProject, setHoveredProject] = useState<number | null>(null);
 
   const projects = [
+    // ... your projects data remains the same
     {
       title: 'AI-Powered Task Manager',
       description: 'A smart productivity app that uses machine learning to prioritize tasks and optimize workflows.',
@@ -40,26 +60,38 @@ const ProjectsSection = () => {
   return (
     <section data-section="3" className="min-h-screen flex items-center px-6 py-20">
       <div className="max-w-7xl mx-auto w-full">
-        <div className="text-center mb-16 animate-fade-in">
+        <motion.div
+          className="text-center mb-16"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.5 }}
+          variants={titleVariants}
+        >
           <h2 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent">
             Personal Projects
           </h2>
           <p className="text-xl text-white/60 max-w-2xl mx-auto">
             Side projects and experiments that showcase my passion for building innovative solutions.
           </p>
-        </div>
+        </motion.div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
+        <motion.div
+          className="grid lg:grid-cols-3 gap-8"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.1 }}
+        >
           {projects.map((project, index) => (
-            <div
+            <motion.div
               key={index}
-              className="group relative animate-fade-in"
-              style={{ animationDelay: `${index * 200}ms` }}
+              variants={itemVariants}
+              className="group relative"
               onMouseEnter={() => setHoveredProject(index)}
               onMouseLeave={() => setHoveredProject(null)}
             >
               <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white/5 to-white/10 border border-white/10 backdrop-blur-sm hover:border-white/20 transition-all duration-500 group-hover:scale-105">
-                {/* Project Image */}
+                {/* ... rest of your project card JSX is fine, no changes needed inside */}
                 <div className="relative overflow-hidden">
                   <img
                     src={project.image}
@@ -68,7 +100,6 @@ const ProjectsSection = () => {
                   />
                   <div className={`absolute inset-0 bg-gradient-to-t ${project.color} opacity-0 group-hover:opacity-30 transition-opacity duration-500`}></div>
                   
-                  {/* Floating Stats */}
                   <div className="absolute top-4 right-4 flex gap-2">
                     <div className="flex items-center gap-1 px-2 py-1 bg-black/60 rounded-full text-xs backdrop-blur-sm">
                       <Star className="w-3 h-3 text-yellow-400" />
@@ -81,7 +112,6 @@ const ProjectsSection = () => {
                   </div>
                 </div>
 
-                {/* Project Content */}
                 <div className="p-6">
                   <div className="flex items-center gap-3 mb-3">
                     <div className={`p-2 rounded-lg bg-gradient-to-r ${project.color} ${
@@ -96,7 +126,6 @@ const ProjectsSection = () => {
                     {project.description}
                   </p>
 
-                  {/* Tech Stack */}
                   <div className="flex flex-wrap gap-2 mb-6">
                     {project.tech.map((tech, i) => (
                       <span
@@ -108,7 +137,6 @@ const ProjectsSection = () => {
                     ))}
                   </div>
 
-                  {/* Action Buttons */}
                   <div className="flex gap-3">
                     <a
                       href={project.github}
@@ -127,12 +155,11 @@ const ProjectsSection = () => {
                   </div>
                 </div>
 
-                {/* Hover Glow Effect */}
                 <div className={`absolute inset-0 rounded-2xl bg-gradient-to-r ${project.color} opacity-0 group-hover:opacity-10 transition-opacity duration-500 pointer-events-none`}></div>
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );
