@@ -8,7 +8,8 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
+      '@': path.resolve(__dirname, './src'), // <-- Add this alias
     },
-  }, 
+  },
+  assetsInclude: ['**/*.svg'], // Ensure SVG files are treated as assets by default
 })
