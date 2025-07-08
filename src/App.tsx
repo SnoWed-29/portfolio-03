@@ -1,5 +1,5 @@
 // import { Toaster } from "@/components/ui/sonner"; // Renamed for clarity
-import { TooltipProvider } from "@/components/ui/tooltip";
+// import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./views/Index";
@@ -9,7 +9,6 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
       {/* You generally only need one toaster, Sonner is often preferred for more modern UIs */}
       {/* <Toaster /> If you prefer the Sonner toaster (recommended) */}
       <BrowserRouter>
@@ -19,7 +18,6 @@ const App = () => (
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
-    </TooltipProvider>
   </QueryClientProvider>
 );
 

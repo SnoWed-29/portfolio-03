@@ -41,6 +41,8 @@ interface SkillDetailPanelProps {
   skillMap: Map<string, Skill>; // Pass skillMap to resolve prerequisite names
 }
 
+const [unlockedSkills, setUnlockedSkills] = useState<Set<string>>(new Set());
+const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null);
 // --- ICON MAPPING ---
 // Map string keys to actual icon components for easy rendering
 const iconMap: { [key: string]: React.ElementType } = {
@@ -215,7 +217,6 @@ const ConnectionLine: React.FC<{ from: Skill, to: Skill, isUnlocked: boolean }> 
   );
 };
 
-// --- COMPONENT: SkillDetailPanel ---
 const SkillDetailPanel: React.FC<SkillDetailPanelProps> = ({ skill, onClose, isUnlocked, canBeUnlocked, onUnlock, skillMap }) => {
   if (!skill) return null;
 
@@ -229,8 +230,6 @@ const SkillDetailPanel: React.FC<SkillDetailPanelProps> = ({ skill, onClose, isU
     Core: { text: 'text-slate-600', bg: 'bg-slate-100', border: 'border-slate-500', barBg: 'bg-slate-500' },
   };
   const style = categoryStyles[skill.category];
-
-  const missingPrerequisites = skill.prerequisites.filter(prereqId => !isUnlocked && !skillMap.get(prereqId)?.isUnlocked); // Check if prerequisite skill is not unlocked
 
   return (
     <AnimatePresence>
@@ -280,11 +279,15 @@ const SkillDetailPanel: React.FC<SkillDetailPanelProps> = ({ skill, onClose, isU
                 <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">
                   <p className="font-semibold mb-1">Missing Prerequisites:</p>
                   <ul className="list-disc list-inside">
-                    {skill.prerequisites.map(prereqId => (
-                      <li key={prereqId} className={`${skillMap.get(prereqId)?.isUnlocked ? 'line-through text-slate-500' : ''}`}>
-                        {skillMap.get(prereqId)?.name || prereqId}
-                      </li>
-                    ))}
+                    {skill.prerequisites.map(prereqId => {
+                      const prereqSkill = skillMap.get(prereqId);
+                      const isPrereqUnlocked = prereqSkill ? unlockedSkills.has(prereqId) : false;
+                      return (
+                        <li key={prereqId} className={`${isPrereqUnlocked ? 'line-through text-slate-500' : ''}`}>
+                          {prereqSkill?.name || prereqId}
+                        </li>
+                      );
+                    })}
                   </ul>
                 </div>
               )}
@@ -308,13 +311,9 @@ const SkillDetailPanel: React.FC<SkillDetailPanelProps> = ({ skill, onClose, isU
   );
 };
 
-// --- MAIN COMPONENT: SkillTree ---
+// Fix the main component
 const SkillTree: React.FC = () => {
-  const [unlockedSkills, setUnlockedSkills] = useState<Set<string>>(new Set());
-  const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null);
-  const [hoveredSkill, setHoveredSkill] = useState<Skill | null>(null);
 
-  // Memoize skillMap for efficient lookups
   const skillMap = useMemo(() => {
     const map = new Map<string, Skill>();
     skillsData.forEach(s => map.set(s.id, s));
@@ -322,7 +321,6 @@ const SkillTree: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Automatically unlock skills with no prerequisites on initial load
     const initialUnlocked = skillsData.filter(s => s.prerequisites.length === 0).map(s => s.id);
     setUnlockedSkills(new Set(initialUnlocked));
   }, []);
@@ -334,7 +332,7 @@ const SkillTree: React.FC = () => {
   const handleUnlockSkill = (skill: Skill) => {
     if (canUnlockSkill(skill) && !unlockedSkills.has(skill.id)) {
       setUnlockedSkills(prev => new Set([...prev, skill.id]));
-      setSelectedSkill(null); // Close panel after unlocking
+      setSelectedSkill(null);
     }
   };
 
@@ -343,7 +341,7 @@ const SkillTree: React.FC = () => {
   };
 
   const generateConnections = () => {
-    const connections: JSX.Element[] = [];
+    const connections: React.JSX.Element[] = [];
     skillsData.forEach(skill => {
       skill.prerequisites.forEach(prereqId => {
         const prereqSkill = skillMap.get(prereqId);
@@ -363,46 +361,33 @@ const SkillTree: React.FC = () => {
   };
 
   return (
-    <div className="w-full min-h-screen  p-8 font-sans antialiased relative overflow-hidden">
-      {/* Header and Skill Count */}
-      <div className="flex justify-between items-start mb-6 relative z-20 max-w-6xl mx-auto">
-        <div>
-          <h1 className="text-5xl font-extrabold text-slate-900 leading-tight">Developer Skill Tree</h1>
-          <p className="text-slate-600 mt-2 text-lg">Map your learning journey and track your progress.</p>
-        </div>
-
-        <div className="bg-white p-5 rounded-2xl shadow-xl border border-slate-200">
-          <div className="text-center">
-            <div className="text-4xl font-bold text-blue-600">{unlockedSkills.size}/{skillsData.length}</div>
-            <div className="text-sm text-slate-700 font-semibold mt-1">Skills Unlocked</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Skill Tree Canvas */}
-      <div className="relative w-full flex justify-center items-center py-10">
-        <div className="relative w-[1200px] h-[550px] "> {/* Adjusted width and height for more space */}
-          <svg width="100%" height="100%" className="absolute inset-0 pointer-events-none z-0">
+    <div className="relative w-full h-screen bg-gradient-to-br from-slate-50 to-blue-50 overflow-hidden">
+      <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
+      
+      <div className="relative z-10 p-8">
+        <h1 className="text-4xl font-bold text-slate-800 mb-2">Interactive Skill Tree</h1>
+        <p className="text-slate-600 mb-8">Click on available skills to unlock your development journey</p>
+        
+        <div className="relative w-full h-[600px]">
+          <svg className="absolute inset-0 w-full h-full pointer-events-none">
             <defs>
-              <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                <path d="M 0 0 L 10 5 L 0 10 z" fill="rgba(148, 163, 184, 0.8)" /> {/* slate-400 equivalent */}
+              <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                <path d="M0,0 L0,6 L9,3 z" fill="#64748b" />
               </marker>
             </defs>
             {generateConnections()}
           </svg>
-
-          <div className="relative z-10">
-            {skillsData.map(skill => (
-              <SkillNode
-                key={skill.id}
-                skill={skill}
-                isUnlocked={unlockedSkills.has(skill.id)}
-                canBeUnlocked={canUnlockSkill(skill)}
-                onClick={handleNodeClick}
-                onHover={setHoveredSkill}
-              />
-            ))}
-          </div>
+          
+          {skillsData.map(skill => (
+            <SkillNode
+              key={skill.id}
+              skill={skill}
+              isUnlocked={unlockedSkills.has(skill.id)}
+              canBeUnlocked={canUnlockSkill(skill)}
+              onClick={handleNodeClick}
+              onHover={() => {}} // You can implement hover functionality if needed
+            />
+          ))}
         </div>
       </div>
 
@@ -412,27 +397,10 @@ const SkillTree: React.FC = () => {
         isUnlocked={selectedSkill ? unlockedSkills.has(selectedSkill.id) : false}
         canBeUnlocked={selectedSkill ? canUnlockSkill(selectedSkill) : false}
         onUnlock={handleUnlockSkill}
-        skillMap={skillMap} // Pass the skillMap
+        skillMap={skillMap}
       />
-
-      {/* Custom Tailwind CSS for slower pulse animation */}
-      <style>{`
-        @keyframes pulse-slow {
-          0%, 100% {
-            transform: scale(1);
-            opacity: 1;
-          }
-          50% {
-            transform: scale(1.03);
-            opacity: 0.8;
-          }
-        }
-        .animate-pulse-slow {
-          animation: pulse-slow 3s infinite ease-in-out;
-        }
-      `}</style>
     </div>
   );
-};
+}; // This closing brace was missing
 
 export default SkillTree;
